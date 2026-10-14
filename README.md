@@ -46,6 +46,8 @@ Actions 日常关闭；[历史细节](docs/history/service-notes-20261014.en.md)
 缺失、异常、重复模型或查询失败不会发布新版本。`POST /v1/models/resolve` 仅为中台提供只读预览，
 预览不会创建资源，正式保存仍独立查询。它不是凭证明文解析接口。
 
+`GET /v1/models/capabilities` 向已认证的中台声明 `agent-model-native-v1` 配置协议；不读数据库或调用供应商。独立程序的 `--model-management-profile` 在配置和数据库初始化前输出同一声明，供发布器核对实际二进制。已保存原生能力的任一历史 Agent 版本都需要匹配的管理服务；发布器必须在回退前检查全部历史，并在 Registry 停止后等待仍在提交的数据库会话结束再复查。
+
 原生模式取消旧的整任务 token 预算，保留调用次数策略（未配置时为 36 次，显式配置保留）；Runtime/Worker 的执行支持和部署门禁
 必须一起完成才能启用。此分支尚未安装，不能把 Registry 发现成功写成完整 Agent 已支持原生长度。
 

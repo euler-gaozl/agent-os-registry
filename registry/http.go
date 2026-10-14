@@ -46,6 +46,9 @@ func wrap(h handler) http.HandlerFunc {
 }
 
 func (s *Server) registryRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("GET /v1/models/capabilities", func(w http.ResponseWriter, r *http.Request) {
+		jsonResponse(w, http.StatusOK, ModelManagementProfile())
+	})
 	mux.HandleFunc("POST /v1/models/resolve", wrap(s.resolveModelHandler))
 	mux.HandleFunc("GET /v1/catalog", wrap(func(w http.ResponseWriter, r *http.Request) error {
 		q, e := catalog.Parse(r.URL.Query())

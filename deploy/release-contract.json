@@ -4,6 +4,7 @@
   "role": "registry",
   "migration_owner": "registry",
   "format": 1,
+  "model_management": {"format": 1, "provides": "agent-model-native-v1"},
   "contract": {
     "http": "agentos-http-v0.6-notes-lifecycle",
     "engines": [],
