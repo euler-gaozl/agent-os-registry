@@ -13,7 +13,11 @@ import (
 	"strconv"
 )
 
-type Server struct{ Store *Store }
+type Server struct {
+	Store *Store
+	// Tests can replace the transport, but endpoint and redirect policy still apply.
+	modelClient *http.Client
+}
 
 type handler func(http.ResponseWriter, *http.Request) error
 
@@ -42,6 +46,7 @@ func wrap(h handler) http.HandlerFunc {
 }
 
 func (s *Server) registryRoutes(mux *http.ServeMux) {
+	mux.HandleFunc("POST /v1/models/resolve", wrap(s.resolveModelHandler))
 	mux.HandleFunc("GET /v1/catalog", wrap(func(w http.ResponseWriter, r *http.Request) error {
 		q, e := catalog.Parse(r.URL.Query())
 		if e != nil {
@@ -146,6 +151,9 @@ func (s *Server) registryRoutes(mux *http.ServeMux) {
 		case "agent":
 			var a Agent
 			if e := json.Unmarshal(in.Spec, &a); e != nil {
+				return e
+			}
+			if e := s.resolveAgentModel(r.Context(), &a); e != nil {
 				return e
 			}
 			if e := a.Validate(); e != nil {

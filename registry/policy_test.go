@@ -17,6 +17,14 @@ func TestServiceIdentityCannotCrossAdministrativeBoundary(t *testing.T) {
 	h := servicehttp.New(servicehttp.Config{Role: "registry", Peers: peers, Authorize: Authorize}, nil, func(m *http.ServeMux) {
 		m.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(204) })
 	})
+	for _, caller := range []string{"futures", "runtime", "worker", "knowledge", "indexer", "toolhub", "telemetry"} {
+		if Authorize(caller, "POST", "/v1/models/resolve") {
+			t.Fatalf("%s can perform administrative capability discovery", caller)
+		}
+	}
+	if !Authorize("control", "POST", "/v1/models/resolve") {
+		t.Fatal("control cannot resolve model capabilities")
+	}
 	for _, tc := range []struct {
 		role, method, path string
 		want               int

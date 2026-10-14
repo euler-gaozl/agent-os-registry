@@ -33,3 +33,22 @@ $env:GOWORK='off'; $env:GOPROXY='off'
 运行 `go test -mod=vendor -count=1 ./...`、`go vet -mod=vendor ./...`。`TEST_DATABASE_URL` 用于创建隔离测试库和 NOLOGIN 角色，不迁移指定的原库；缺少时数据库测试明确跳过。测试不使用真实模型 Key。源代码拆分不等于全平台容错、容量或生产验收。
 
 Actions 日常关闭；[历史细节](docs/history/service-notes-20261014.en.md) 和 [集成计划](https://github.com/euler-gaozl/agent-os/blob/main/docs/windows-single-machine-plan.md) 分别记录各项证据。
+
+## 模型原生长度候选
+
+`feat/model-native-limits` 使用固定 SDK `v0.1.0-rc.3`。创建 Agent 版本时，
+`model.limits` 非空表示采用官方模型能力；Registry 丢弃客户端提供的能力值，使用已保存的
+命名凭证查询官方模型列表，将模型、端点、协议、上下文窗口、最大输出、查询时间和元数据
+摘要一起冻结进该版本。旧版本查询和运行恢复不重新发现，不静默改变历史任务。
+
+当前解析适配器支持 `https://api.deepseek.com` 和其 `/v1` 别名；其他供应商明确报未支持，
+不猜测长度。请求拒绝重定向，响应最多 1 MiB，15 秒超时；供应商错误正文及凭证不进入返回值。
+缺失、异常、重复模型或查询失败不会发布新版本。`POST /v1/models/resolve` 仅为中台提供只读预览，
+预览不会创建资源，正式保存仍独立查询。它不是凭证明文解析接口。
+
+原生模式取消旧的整任务 token 预算，保留调用次数策略；Runtime/Worker 的执行支持和部署门禁
+必须一起完成才能启用。此分支尚未安装，不能把 Registry 发现成功写成完整 Agent 已支持原生长度。
+
+本机该候选完成 35 条检查、零测试跳过及 vet/build，包括实际隔离 PostgreSQL 的加密凭证、
+新版本发布、旧版本不变和失败不发布；供应商响应使用合成夹具，没有付费模型调用。
+独立只读评审发现的重复成员和大小写别名解析问题已修复并复验。
