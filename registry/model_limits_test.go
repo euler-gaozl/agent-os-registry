@@ -162,6 +162,27 @@ func TestNativePreviewAndCancellationDoNotPublish(t *testing.T) {
 	}
 }
 
+func TestNativeDefaultAttemptsRemainIndependentOfTokenLimits(t *testing.T) {
+	t.Setenv("DEEPSEEK_API_KEY", "synthetic-discovery-credential")
+	s := &Server{Store: &Store{}, modelClient: &http.Client{Transport: modelRoundTrip(func(r *http.Request) (*http.Response, error) {
+		return &http.Response{StatusCode: 200, Header: http.Header{}, Body: io.NopCloser(strings.NewReader(nativeFixture)), Request: r}, nil
+	})}}
+	for _, count := range []int{0, 12} {
+		a := Agent{Model: nativeFixtureModel(), MaxModelAttempts: count, ModelTokenBudget: 250000}
+		a.Model.Limits = &contracts.ModelLimits{}
+		if err := s.resolveAgentModel(context.Background(), &a); err != nil {
+			t.Fatal(err)
+		}
+		want := count
+		if want == 0 {
+			want = 36
+		}
+		if a.MaxModelAttempts != want || a.ModelTokenBudget != 0 || a.Model.MaxTokens != 393216 {
+			t.Fatal("attempt policy or token capabilities changed")
+		}
+	}
+}
+
 func TestNativePublishedRevisionFreezesServerObservation(t *testing.T) {
 	db, role := fixtureDatabase(t)
 	ctx := context.Background()

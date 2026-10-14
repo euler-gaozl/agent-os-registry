@@ -58,6 +58,9 @@ func (s *Server) resolveAgentModel(ctx context.Context, agent *Agent) error {
 	// Native mode has no inherited family token allowance. Attempts, usage and
 	// unknown-call accounting remain independent execution responsibilities.
 	agent.ModelTokenBudget = 0
+	if agent.MaxModelAttempts == 0 {
+		agent.MaxModelAttempts = 36
+	}
 	return nil
 }
 
