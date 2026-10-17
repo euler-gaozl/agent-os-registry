@@ -23,6 +23,9 @@ func (s *Store) validateFinalOutputBinding(ctx context.Context, a Agent) error {
 		if e := s.Resource(ctx, "connector", ref, &c); e != nil {
 			return e
 		}
+		// Runtime snapshots namespace MCP tools by the immutable binding ID,
+		// not the editable display name (which may contain spaces or Chinese).
+		c.Name = ref.ID
 		snap.Connectors = append(snap.Connectors, c)
 	}
 	for _, ref := range a.Skills {

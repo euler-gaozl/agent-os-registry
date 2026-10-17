@@ -27,11 +27,11 @@ func TestFinalOutputPublicationRetainsPolicyAndExactBinding(t *testing.T) {
 	})}}
 	mux := http.NewServeMux()
 	s.registryRoutes(mux)
-	c := Connector{Name: "fixture", Tools: []contracts.Tool{{Name: "check", InputSchema: JSON(map[string]any{"type": "object", "properties": map[string]any{"draft": map[string]string{"type": "string"}}, "required": []string{"draft"}})}}}
+	c := Connector{Name: "研究草稿字段与比较检查", Tools: []contracts.Tool{{Name: "check", InputSchema: JSON(map[string]any{"type": "object", "properties": map[string]any{"draft": map[string]string{"type": "string"}}, "required": []string{"draft"}})}}}
 	if _, e := store.PutResource(ctx, "connector", "checker", JSON(c)); e != nil {
 		t.Fatal(e)
 	}
-	a := Agent{Name: "Final fixture", Prompt: "Check the retained original.", Model: nativeFixtureModel(), Connectors: []Ref{{ID: "checker", Revision: 1}}, FinalOutput: &contracts.FinalOutputPolicy{Protocol: contracts.FinalOutputProtocol, Tool: "mcp_fixture_check", InputField: "draft", ReadyPath: []string{"structuredContent", "ready"}}}
+	a := Agent{Name: "Final fixture", Prompt: "Check the retained original.", Model: nativeFixtureModel(), Connectors: []Ref{{ID: "checker", Revision: 1}}, FinalOutput: &contracts.FinalOutputPolicy{Protocol: contracts.FinalOutputProtocol, Tool: "mcp_checker_check", InputField: "draft", ReadyPath: []string{"structuredContent", "ready"}}}
 	a.Model.Limits = &contracts.ModelLimits{}
 	post := func() *httptest.ResponseRecorder {
 		w := httptest.NewRecorder()
@@ -111,16 +111,21 @@ func TestFinalOutputBindingUsesImmutableToolHubHTTP(t *testing.T) {
 	}))
 	defer hub.Close()
 	s := &Store{CatalogURL: hub.URL, Remote: &serviceclient.Client{CatalogURL: hub.URL, Token: "fixture-registry"}}
-	a := Agent{Connectors: []Ref{{ID: "fixed-checker", Revision: 3}}, FinalOutput: &contracts.FinalOutputPolicy{Protocol: contracts.FinalOutputProtocol, Tool: "mcp_fixture_check", InputField: "draft", ReadyPath: []string{"ready"}}}
+	a := Agent{Connectors: []Ref{{ID: "fixed-checker", Revision: 3}}, FinalOutput: &contracts.FinalOutputPolicy{Protocol: contracts.FinalOutputProtocol, Tool: "mcp_fixed-checker_check", InputField: "draft", ReadyPath: []string{"ready"}}}
 	if e := s.validateFinalOutputBinding(context.Background(), a); e != nil {
 		t.Fatal(e)
 	}
+	a.FinalOutput.Tool = "mcp_fixture_check"
+	if e := s.validateFinalOutputBinding(context.Background(), a); e == nil {
+		t.Fatal("display-name tool accepted although Runtime uses immutable binding ID")
+	}
+	a.FinalOutput.Tool = "mcp_fixed-checker_check"
 	available = false
 	if e := s.validateFinalOutputBinding(context.Background(), a); e == nil {
 		t.Fatal("missing ToolHub version accepted")
 	}
 	a.FinalOutput = nil
-	if e := s.validateFinalOutputBinding(context.Background(), a); e != nil || calls != 2 {
+	if e := s.validateFinalOutputBinding(context.Background(), a); e != nil || calls != 3 {
 		t.Fatal("legacy publish acquired new catalog dependency", e, calls)
 	}
 }

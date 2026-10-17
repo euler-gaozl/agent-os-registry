@@ -2,6 +2,8 @@
 
 管理 Agent、提示词、知识库配置等资源的固定版本，以及加密保存的供应商凭证。独立 Go 服务只拥有 `public.resources`、`public.secrets`，不读取 Runtime、ToolHub 或 Knowledge 的表。
 
+2026-10-17 修复：交付工具的 MCP 命名空间使用绑定资源 ID，与 Runtime 快照一致；中文或不同的显示名只用于展示。真实 PostgreSQL 发布/版本回读和固定 ToolHub HTTP 两项定向测试通过，错误显示名别名会被拒绝，旧无策略 Agent 保持兼容。安装事实由集成仓的受管 catalog 记录。
+
 ## 确定性交付策略候选（2026-10-17）
 
 固定 SDK 升至 rc.4。创建 Agent 版本会保留可选 `final_output`，校验 `receipt-field-v1`、原生模型能力、候选工具与绑定的精确 Skill/MCP 资源版本。Skill/MCP 通过 ToolHub 的固定版本 HTTP 接口解析，不读 ToolHub 数据库；无法取得版本或工具不匹配时不发布。原无策略 Agent 不增加字段或额外目录依赖。
