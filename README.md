@@ -2,6 +2,12 @@
 
 管理 Agent、提示词、知识库配置等资源的固定版本，以及加密保存的供应商凭证。独立 Go 服务只拥有 `public.resources`、`public.secrets`，不读取 Runtime、ToolHub 或 Knowledge 的表。
 
+## 确定性交付策略候选（2026-10-17）
+
+固定 SDK 升至 rc.4。创建 Agent 版本会保留可选 `final_output`，校验 `receipt-field-v1`、原生模型能力、候选工具与绑定的精确 Skill/MCP 资源版本。Skill/MCP 通过 ToolHub 的固定版本 HTTP 接口解析，不读 ToolHub 数据库；无法取得版本或工具不匹配时不发布。原无策略 Agent 不增加字段或额外目录依赖。
+
+`/v1/models/capabilities` 与 `--model-management-profile` 另声明 `final_output: receipt-field-v1`，供管理与发布兼容检查使用。这不是 Runtime/Worker 已启用 v5 的证明；该增量尚未安装。完整数据库与 HTTP 检查共 39 个测试事件通过、零测试跳过，覆盖发布/重读不丢策略、旧绑定不随新资源版本漂移、失败不产生版本、ToolHub HTTP 失败关闭及旧 Agent 兼容；模型能力发现为合成供应商夹具。
+
 ## 职责与权限
 
 目录查询返回有界摘要；Skill/MCP 的写入转发给 ToolHub，启动必须提供 `TOOLHUB_URL`。中台可管理资源与凭证，但不能解析明文凭证；执行和检索服务按名称解析所需供应商凭证。Futures 只读取状态和自身发布列表。这是服务间信任边界，尚非租户 RBAC。

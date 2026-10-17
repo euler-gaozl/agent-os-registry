@@ -32,10 +32,11 @@ func TestModelManagementProfileIsAuthenticatedAndReadOnly(t *testing.T) {
 		}
 		if tc.want == 200 {
 			var profile struct {
-				Format   int    `json:"format"`
-				Provides string `json:"provides"`
+				Format      int    `json:"format"`
+				Provides    string `json:"provides"`
+				FinalOutput string `json:"final_output"`
 			}
-			if err := json.Unmarshal(w.Body.Bytes(), &profile); err != nil || profile.Format != 1 || profile.Provides != "agent-model-native-v1" {
+			if err := json.Unmarshal(w.Body.Bytes(), &profile); err != nil || profile.Format != 1 || profile.Provides != "agent-model-native-v1" || profile.FinalOutput != "receipt-field-v1" {
 				t.Fatal("incorrect model-management contract", err)
 			}
 		}

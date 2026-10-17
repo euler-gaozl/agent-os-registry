@@ -162,6 +162,9 @@ func (s *Server) registryRoutes(mux *http.ServeMux) {
 			if e := a.Validate(); e != nil {
 				return e
 			}
+			if e := s.Store.validateFinalOutputBinding(r.Context(), a); e != nil {
+				return e
+			}
 			if e := validateEndpoint(a.Model.BaseURL); e != nil {
 				return e
 			}
